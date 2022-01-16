@@ -70,7 +70,7 @@ void myTime::printInfo() {
 #endif
 }
 
-bool myTime::getTime() {
+bool myTime::getTimeChangedSeconds() {
   bool changed = false;
 
 #ifndef SIM
@@ -80,6 +80,31 @@ bool myTime::getTime() {
   _currentTimeInfo = *localtime(&t2);
 #endif
 
+  // if (_currentTimeInfo.tm_sec != _lastTimeInfo.tm_sec) {
+  //   whatChanged = whatChanged | SEC_DIG;
+  // } else
+  //   return whatChanged;
+  if (_currentTimeInfo.tm_sec != _lastTimeInfo.tm_sec) {
+    changed = true;
+    _lastTimeInfo = _currentTimeInfo;
+    updateDigits();
+  }
+  return changed;
+}
+bool myTime::getTimeChanged() {
+  bool changed = false;
+
+#ifndef SIM
+  getLocalTime(&_currentTimeInfo);
+#else
+  time_t t2 = time(NULL);
+  _currentTimeInfo = *localtime(&t2);
+#endif
+
+  // if (_currentTimeInfo.tm_sec != _lastTimeInfo.tm_sec) {
+  //   whatChanged = whatChanged | SEC_DIG;
+  // } else
+  //   return whatChanged;
   if (_currentTimeInfo.tm_min != _lastTimeInfo.tm_min) {
     changed = true;
     _lastTimeInfo = _currentTimeInfo;
@@ -87,10 +112,36 @@ bool myTime::getTime() {
   }
   return changed;
 }
+void myTime::getTime() {
+  bool changed = false;
+
+#ifndef SIM
+  getLocalTime(&_currentTimeInfo);
+#else
+  time_t t2 = time(NULL);
+  _currentTimeInfo = *localtime(&t2);
+#endif
+
+  // if (_currentTimeInfo.tm_sec != _lastTimeInfo.tm_sec) {
+  //   whatChanged = whatChanged | SEC_DIG;
+  // } else
+  //   return whatChanged;
+    _lastTimeInfo = _currentTimeInfo;
+    updateDigits();
+  }
 void myTime::updateDigits() {
+
+  prevHourDigit = hourDigit;
+  prevHourTenth = hourTenth;
+  prevMinDigit = minDigit;
+  prevMinTenth = minTenth;
+  prevSecDigit = secDigit;
+  prevSecTenth = secTenth;
 
   hourDigit = (_currentTimeInfo.tm_hour % 10);
   hourTenth = (_currentTimeInfo.tm_hour / 10);
   minDigit = (_currentTimeInfo.tm_min % 10);
   minTenth = (_currentTimeInfo.tm_min / 10);
+  secDigit = (_currentTimeInfo.tm_sec % 10);
+  secTenth = (_currentTimeInfo.tm_sec / 10);
 }

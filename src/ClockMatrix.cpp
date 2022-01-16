@@ -105,6 +105,18 @@ void ClockMatrix::setTargetAll(int hourT, int minT) {
     }
   }
 }
+void ClockMatrix::addTarget(uint32_t i, uint32_t j, int hourT, int minT){
+  if (i >= _rows || j >= _cols)
+    return;
+      _matrix[i][j].addToTarget(hourT, minT);
+}
+void ClockMatrix::addTargetAll(int hourT, int minT) {
+  for (uint32_t i = 0; i < _rows; i++) {
+    for (uint32_t j = 0; j < _cols; j++) {
+      _matrix[i][j].addToTarget(hourT, minT);
+    }
+  }
+}
 void ClockMatrix::setTargetBox(uint32_t i, uint32_t j, uint32_t heigth,
                                uint32_t width, int hourA, int minA) {
   for (int i1 = i; i1 < i + heigth; i1++) {
@@ -146,25 +158,35 @@ void ClockMatrix::printDigit(uint32_t x, uint32_t y, uint8_t dig) {
   }
 }
 
-void ClockMatrix::printClock(myTime *timeObj, float rpm) {
-  bool changed = timeObj->getTime();
+void ClockMatrix::printClock(myTime *timeObj) {
+  printDigit(1, 2, timeObj->hourTenth);
+  printDigit(4, 2, timeObj->hourDigit);
+  printDigit(8, 2, timeObj->minTenth);
+  printDigit(11, 2, timeObj->minDigit);
+}
+void ClockMatrix::printClockCheck(myTime *timeObj) {
+  bool changed = timeObj->getTimeChanged();
   if (changed) {
-    printDigit(1, 2, timeObj->hourTenth);
-    printDigit(4, 2, timeObj->hourDigit);
-    printDigit(8, 2, timeObj->minTenth);
-    printDigit(11, 2, timeObj->minDigit);
+    printClock(timeObj);
   }
 }
 void ClockMatrix::printClockNormalized(myTime *timeObj, float rpm) {
-  bool changed = timeObj->getTime();
+  timeObj->getTimeChanged();
+  normalizeAnglesBox(2, 8, 6, 6);
+  normalizeAnglesBox(2, 1, 6, 6);
+  printClock(timeObj);
+  normalizeSpeedBox(2, 1, 6, 6, rpm);
+  normalizeSpeedBox(2, 8, 6, 6, rpm);
+}
+
+void ClockMatrix::printClockNormalizedChecked(myTime *timeObj, float rpm) {
+  bool changed = timeObj->getTimeChanged();
   if (changed) {
-    printDigit(1, 2, timeObj->hourTenth);
-    printDigit(4, 2, timeObj->hourDigit);
-    printDigit(8, 2, timeObj->minTenth);
-    printDigit(11, 2, timeObj->minDigit);
+    normalizeAnglesBox(2, 8, 6, 6);
+    normalizeAnglesBox(2, 1, 6, 6);
+    printClock(timeObj);
     normalizeSpeedBox(2, 1, 6, 6, rpm);
     normalizeSpeedBox(2, 8, 6, 6, rpm);
-    fflush(stdout);
   }
 }
 void ClockMatrix::normalizeSpeed(float rpm) {
@@ -233,6 +255,17 @@ void ClockMatrix::normalizeAngles() {
   for (uint32_t i = 0; i < _rows; i++) {
     for (uint32_t j = 0; j < _cols; j++) {
       _matrix[i][j].normalizeAngles();
+    }
+  }
+}
+void ClockMatrix::normalizeAnglesBox(uint32_t i, uint32_t j, uint32_t heigth,
+                                     uint32_t width) {
+
+  for (uint32_t i1 = i; i1 < i + heigth; i1++) {
+    for (uint32_t j1 = j; j1 < j + width; j1++) {
+      if (j1 >= _cols || i1 >= _rows)
+        continue;
+      _matrix[i1][j1].normalizeAngles();
     }
   }
 }

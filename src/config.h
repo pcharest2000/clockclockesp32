@@ -2,7 +2,7 @@
 #define CONFIG_H_
 
 
-//#define SHOWFPS // COntrols if fps showb
+#define SHOWFPS // COntrols if fps showb
 //#define SIM
 #define GETTIME
 

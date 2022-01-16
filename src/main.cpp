@@ -1,7 +1,7 @@
 #include "config.h"
 #ifndef SIM
-#include <Arduino.h>
 #include "fabgl.h"
+#include <Arduino.h>
 #else
 #include "Canvas.h"
 #endif
@@ -11,27 +11,25 @@
 #include "myTime.h"
 #include <cstdint>
 
-
+#include "dali_digit.h"
 void updateClockTask(void *pvParameters);
 TaskHandle_t updateTask;
 
 fabgl::VGA2Controller displayController;
 Canvas cv(&displayController);
 ClockMatrix clocks;
-
+DaliDigit dalDig;
 #ifdef GETTIME
 myTime myTi;
 #endif
 
 void updateClockTask(void *pvParameters) {
   for (;;) {
-    //uint8_t state = myTi.getTime();
-    // clocks.printClock(myTi.hourTenth, myTi.hourDigit, myTi.minTenth,
-    //                   myTi.minDigit);
-    aniWave(&clocks, &myTi);
-    clocks.runToDestination();
+    //   if (myTi.getTimeChanged())
+    clockLoop(&clocks, &myTi);
   }
 }
+
 void setup() {
   Serial.begin(115200);
 #ifdef GETTIME
@@ -41,6 +39,7 @@ void setup() {
                           GPIO_NUM_15);
   displayController.setResolution(SVGA_800x600_60Hz, -1, -1, true);
   clocks.begin(&cv);
+  dalDig.begin(&cv, &myTi);
   xTaskCreatePinnedToCore(
       updateClockTask, /* Task function. */
       "updateTask",    /* name of task. */
@@ -70,15 +69,15 @@ void loop() {
   cv.drawTextFmt(0, 30, "Free Memory: %d bytes",
                  heap_caps_get_free_size(MALLOC_CAP_32BIT));
 #endif
-  // display test state and FPS
 
-  clocks.draw();
+  // clocks.draw();
+  dalDig.drawClockBlend();
   cv.swapBuffers();
-#ifdef GETTIME
-   myTi.getTime();
-  // myTi.printInfo();
-  // Serial.print("What changed: ");
-  // Serial.println(state);
-  // delay(1000);
-#endif
+  // #ifdef GETTIME
+  //   myTi.getTime();
+  //   // myTi.printInfo();
+  //   // Serial.print("What changed: ");
+  //   // Serial.println(state);
+  //   // delay(1000);
+  // #endif
 }
